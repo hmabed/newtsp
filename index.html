@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
         integri-ty="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
         crossorigin=""></script>
+    
 </head>
 <style>
     html,
@@ -25,6 +26,7 @@
 <script>
     var map;
     var clients = [];
+    var visitsOrder = [];
     function initialize() {
         map = L.map('map').setView([48.833, 2.333], 7);
         var osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -35,7 +37,7 @@
 
         map.addLayer(osmLayer);
         map.on('click', onMapClick);
-        map.on('contextmenu', solveTSPv1);
+        map.on('contextmenu', onMapRightClick);
     }
     function onMapClick(e) {
         //alert("You clicked the map at " + e.latlng);
@@ -45,17 +47,40 @@
         marker.bindTooltip(name);
         clients.push(marker);
     }
+    function onMapRightClick(e) {
+        solveTSPv1();
+        drawPath();
+    }
     function computeDistance(marker1, marker2) {
         return marker1.getLatLng().distanceTo(marker2.getLatLng());
     }
+    function computePathDistance(path){
+        distance=0.0;
+        for (i = 1; i < clients.length; i++) {
+            distance+=computeDistance(path[i-1],path[i]);
+        }
+        return distance;
+    }
+
+    function drawPath() {
+        for (i = 1; i < clients.length; i++) {
+            //draw a line between the current and next clients
+            var pointList = [visitsOrder[i-1].getLatLng(), visitsOrder[i].getLatLng()];
+            var firstpolyline = new L.Polyline(pointList);
+            map.addLayer(firstpolyline);
+        }
+    }
+
     function solveTSPv1() {
-        currentClient = 0; //last Visited client. at the begining it is just the first client
+        currentClientIndex = 0; //last Visited client. at the begining it is just the first client
         //at the start, all the clients are not visited
-        totalDistance=0.0;
+        totalDistance = 0.0;
         isVisited = [];
+        visitsOrder = [];
         for (i = 0; i < clients.length; i++) isVisited.push(false);
         //except the first one : the current one
-        isVisited[currentClient] = true;
+        isVisited[currentClientIndex] = true;
+        visitsOrder.push(clients[currentClientIndex]);
         //and only one client is then visited
         nbvisited = 1;
         // while not all clients are visited
@@ -64,26 +89,53 @@
             minDistance = 100000000;
             for (i = 0; i < clients.length; i++) { //brows all clients
                 if (!isVisited[i]) { //if not visited
-                    distance = computeDistance(clients[currentClient], clients[i]); //compute the distance to the current client
+                    distance = computeDistance(clients[currentClientIndex], clients[i]); //compute the distance to the current client
                     if (distance < minDistance) { //if closest then
                         minDistance = distance; //store the closest distance
-                        nextClient = i;  //and store the client
+                        nextClientIndex = i;  //and store the client
                     }
                 }
             }
-            isVisited[nextClient] = true;//the next client is cosidered visited
+            isVisited[nextClientIndex] = true;//the next client is cosidered visited
+            visitsOrder.push(clients[nextClientIndex]);
             //update the total distance 
-            totalDistance+=minDistance;
-            //draw a line between the current and next clients
-            var pointList = [clients[currentClient].getLatLng(), clients[nextClient].getLatLng()];
-
-            var firstpolyline = new L.Polyline(pointList);
-
-            map.addLayer(firstpolyline);
+            totalDistance += minDistance;
             nbvisited++; //the number of visited client is incremented
-            currentClient = nextClient; //the current client is now the next client
-            
+            currentClientIndex = nextClientIndex; //the current client is now the next client
+
         }
-        alert("the total distance is " + totalDistance);
+        alert("The total distance is " + totalDistance);
     }
+    function solveTSPv2() {
+        //call solveTSPv1 to obtain the initial path proposition
+
+        //store the evaluation of the initial path distance
+
+        //repeat a given number of times
+
+        ////select a new position of the last client between 1 and nbclients-2
+        ////use the function Math.random()
+
+        ////insert the last visited client to the new position
+        ////use the function listname.slice(element,index)
+
+        ////evaluate the new path's distance
+
+        ////if the new path is worst than the previous
+
+        //////return to the previous path
+        //////which means, return the previousely moved client to the last position  
+        
+        
+        ////else
+        ////// store the new evaluation
+        
+        
+        
+        
+        //evaluate the best solution
+        //display the distance of the best solution 
+
+    }
+
 </script>
